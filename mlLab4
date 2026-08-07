@@ -1,0 +1,78 @@
+import numpy as np
+
+# -----------------------------
+# Hidden States
+# 0 - Walking
+# 1 - Running
+# 2 - Resting
+# -----------------------------
+
+states = ["Walking", "Running", "Resting"]
+
+# Observation Symbols
+# Low = 0
+# Medium = 1
+# High = 2
+
+observations = ["Low", "Medium", "High"]
+
+# Initial Probability
+pi = np.array([0.5, 0.3, 0.2])
+
+# Transition Matrix
+A = np.array([
+    [0.6, 0.3, 0.1],
+    [0.2, 0.5, 0.3],
+    [0.3, 0.2, 0.5]
+])
+
+# Emission Matrix
+B = np.array([
+    [0.6, 0.3, 0.1],   # Walking
+    [0.1, 0.3, 0.6],   # Running
+    [0.7, 0.2, 0.1]    # Resting
+])
+
+# Observation Sequence
+# (High, Medium, Low, High)
+O = [2, 1, 0, 2]
+
+T = len(O)
+N = len(states)
+
+# Forward Probability Table
+alpha = np.zeros((T, N))
+
+# -----------------------------
+# Initialization
+# -----------------------------
+for i in range(N):
+    alpha[0][i] = pi[i] * B[i][O[0]]
+
+# -----------------------------
+# Induction
+# -----------------------------
+for t in range(1, T):
+    for j in range(N):
+        total = 0
+        for i in range(N):
+            total += alpha[t-1][i] * A[i][j]
+        alpha[t][j] = total * B[j][O[t]]
+
+# -----------------------------
+# Termination
+# -----------------------------
+likelihood = np.sum(alpha[T-1])
+
+# -----------------------------
+# Display Results
+# -----------------------------
+print("Forward Probability Table (Alpha):\n")
+
+for t in range(T):
+    print(f"Time {t+1} ({observations[O[t]]})")
+    for s in range(N):
+        print(f"{states[s]:10s}: {alpha[t][s]:.8f}")
+    print()
+
+print("Likelihood of Observation Sequence =", likelihood)
